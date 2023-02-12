@@ -34,7 +34,7 @@ createConnection.connect(function (err){
     startingPrompt();
 })
 
-
+//prompt that asks the user what they would like to do
 function startingPrompt() {
     inquirer
         .prompt ({
@@ -49,6 +49,42 @@ function startingPrompt() {
                 'Add Role',
                 'View All Departments',
                 'Add Department',
+                'Exit'
             ]
         })
+        //switch that can go to a specific function depending on the user input
+        .then ( function ({task}){
+            switch(task) {
+                case 'View All Employees':
+                    viewAllEmployees();
+                    break;
+                case 'Add Employee':
+                    addEmployee();
+                    break;
+                case 'Update Employee Role':
+                    updateEmployeeRole();
+                    break;
+                case 'View All Roles':
+                    viewAllRoles();
+                    break;
+                case 'View All Departments':
+                    viewAllDepartments();
+                    break;
+                case 'Add Department':
+                    addDepartment();
+                    break;
+                case 'Exit':
+                    db.end();
+                    break;
+            }
+        })
+}
+
+function viewAllEmployees(){
+    let list = 'SELECT * FROM employee';
+    db.query(list, function(err, res) {
+        if (err) throw err;
+        console.table(res);
+        startingPrompt();
+    });
 }
