@@ -3,7 +3,6 @@ const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const fs = require('fs');
 require('dotenv').config();
-const { createConnection } = require('net');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -84,6 +83,7 @@ function startingPrompt() {
         })
 }
 
+//shows everything in the table for employees
 function viewAllEmployees() {
     let sql = `SELECT * FROM employee`;
     db.query(sql, function (err, res) {
@@ -95,11 +95,7 @@ function viewAllEmployees() {
     });
 }
 
-// function viewAllRoles(){
-//     rolesList();
-//     startingPrompt();
-// }
-
+//shows all the roles by querying the db 
 function viewAllRoles() {
     let sql = `SELECT * FROM employees_db.role`;
     db.query(sql, function (err, res) {
@@ -111,12 +107,8 @@ function viewAllRoles() {
     });
 }
 
+//shows the departmentList
 function viewAllDepartments() {
-    departmentList();
-    startingPrompt();
-}
-
-function departmentList() {
     let sql = `SELECT * FROM department`;
     db.query(sql, function (err, res) {
         if (err) throw err;
@@ -196,6 +188,7 @@ function addEmployee() {
         })
 }
 
+//add a role with the name and salary
 async function addRole(){
     inquirer
     .prompt([
@@ -218,6 +211,7 @@ async function addRole(){
     })
 }
 
+//update Employee will update the role and name of an employee
 async function updateEmployeeRole() {
     let sql = `SELECT * FROM employee`;
     await db.promise().query(sql)
@@ -232,8 +226,8 @@ async function updateEmployeeRole() {
                         choices: employee,
                     },
                 ])
-                .then(async (employeeName) => {
-                    let updateEmployee = [employeeName];
+                .then(async (answer) => {
+                    let updateEmployee = [answer.employeeName];
                     let sql = `SELECT title, id FROM employees_db.role`;
                     await db.promise().query(sql)
                         .then(async ([data]) => {
@@ -247,9 +241,10 @@ async function updateEmployeeRole() {
                                         choices: Roles,
                                     }
                                 ])
-                                .then(function (answer) {
-                                    updateEmployee.push(answer.Roles);
-                                    db.query("UPDATE employee SET role_id=? WHERE first_name=?", [updateEmployee.employee, updateEmployee.Roles]);
+                                .then(async function (answer) {
+                                    updateEmployee.unshift(answer.employeeRole);
+                                    console.log(updateEmployee);
+                                    await db.promise().query("UPDATE employee SET role_id=? WHERE id=?", updateEmployee);
                                     viewAllEmployees();
                                 })
                         })
@@ -272,9 +267,10 @@ async function addDepartment() {
             },
         ])
         .then(function (answer) {
+            // inserts the answer from the prompt into department name
             db.query("INSERT INTO department (department_name) VALUE (?)", [answer.departmentName], function (err, res) {
                 if (err) throw err;
-                departmentList();
+                viewAllDepartments();
             })
         })
 }
